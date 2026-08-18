@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="上海财经大学《数据科学与数据分析》AI融合课程网站样例">
+  <title>数据科学与数据分析｜AI融合课程</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="#top" aria-label="返回首页顶部">
+        <span class="brand-mark" aria-hidden="true">DS</span>
+        <span class="brand-copy">
+          <strong>数据科学与数据分析</strong>
+          <small>AI 融合课程</small>
+        </span>
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-nav">菜单</button>
+      <nav id="main-nav" class="main-nav" aria-label="主导航">
+        <a href="#about">课程介绍</a>
+        <a href="#path">学习路径</a>
+        <a href="#agent">课程智能体</a>
+        <a href="#project">实践项目</a>
+      </nav>
+      <span class="online-badge"><i aria-hidden="true"></i> 网站运行正常</span>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="top" class="hero">
+      <div class="hero-orbit orbit-one" aria-hidden="true"></div>
+      <div class="hero-orbit orbit-two" aria-hidden="true"></div>
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">上海财经大学 · AI 融合课程建设项目</p>
+          <h1>用数据理解世界，<br><span>用 AI 辅助决策。</span></h1>
+          <p class="hero-lead">从数据获取、清洗与可视化，到机器学习与智能体应用，建立面向财经管理真实问题的完整数据分析能力。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#path">查看学习路径</a>
+            <a class="button button-ghost" href="#agent">体验智能体样例</a>
+          </div>
+          <dl class="hero-facts" aria-label="课程基本信息">
+            <div><dt>课程性质</dt><dd>本科专业必修课</dd></div>
+            <div><dt>课程学分</dt><dd>2 学分</dd></div>
+            <div><dt>适用专业</dt><dd>数据科学 · 信管 · 电商</dd></div>
+          </dl>
+        </div>
+
+        <aside class="hero-panel" aria-label="课程数据分析流程示意">
+          <div class="panel-topline">
+            <span>DATA → INSIGHT</span>
+            <span class="panel-status">LIVE</span>
+          </div>
+          <div class="chart-area" aria-hidden="true">
+            <div class="chart-bars">
+              <i style="--height: 35%"></i><i style="--height: 58%"></i><i style="--height: 45%"></i>
+              <i style="--height: 72%"></i><i style="--height: 65%"></i><i style="--height: 88%"></i>
+              <i style="--height: 78%"></i><i style="--height: 96%"></i>
+            </div>
+            <svg class="chart-line" viewBox="0 0 420 150" preserveAspectRatio="none">
+              <path d="M0 126 C45 118, 48 104, 87 109 S145 80, 184 88 S242 51, 283 60 S344 22, 420 29" />
+              <circle cx="420" cy="29" r="5" />
+            </svg>
+          </div>
+          <div class="flow-row">
+            <span><b>01</b> 采集</span><i></i><span><b>02</b> 处理</span><i></i><span><b>03</b> 建模</span><i></i><span><b>04</b> 决策</span>
+          </div>
+          <div class="insight-card">
+            <span class="spark" aria-hidden="true">✦</span>
+            <div><small>AI 分析建议</small><p>先验证数据质量，再解释模型结果。</p></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="about" class="section about-section">
+      <div class="section-heading">
+        <p class="eyebrow">COURSE OVERVIEW</p>
+        <h2>一门连接技术、数据与财经场景的课程</h2>
+        <p>课程强调“人机协同但不替代判断”：学生不仅学习如何使用 AI，也学习如何核查来源、验证代码、解释结果并承担分析责任。</p>
+      </div>
+      <div class="value-grid">
+        <article><span class="number">01</span><h3>完整数据链路</h3><p>从网页数据获取，到数据库存储、清洗、分析与可视化。</p></article>
+        <article><span class="number">02</span><h3>机器学习基础</h3><p>理解回归、分类与聚类方法，建立正确的建模与评价意识。</p></article>
+        <article><span class="number">03</span><h3>AI 协同实践</h3><p>使用大模型辅助编程、分析和表达，同时对生成结果进行验证。</p></article>
+      </div>
+    </section>
+
+    <section id="path" class="section path-section">
+      <div class="section-heading heading-row">
+        <div><p class="eyebrow">LEARNING PATH</p><h2>六个模块，完成一次真实的数据分析</h2></div>
+        <p>每个模块均对应课件、练习、案例和智能体辅助任务，最终汇入综合项目。</p>
+      </div>
+      <div class="module-grid">
+        <article class="module-card"><span>MODULE 01</span><b>基础与伦理</b><p>数据科学方法、Python基础、AI使用规范</p><em>01—02</em></article>
+        <article class="module-card"><span>MODULE 02</span><b>数据获取</b><p>网络请求、网页解析、动态数据采集</p><em>03—07</em></article>
+        <article class="module-card"><span>MODULE 03</span><b>存储与治理</b><p>数据库、数据清洗、质量诊断</p><em>08—10</em></article>
+        <article class="module-card"><span>MODULE 04</span><b>洞察与表达</b><p>探索性分析、统计图表、数据叙事</p><em>11</em></article>
+        <article class="module-card"><span>MODULE 05</span><b>机器学习</b><p>回归、分类、决策树与聚类</p><em>12—15</em></article>
+        <article class="module-card featured"><span>MODULE 06</span><b>智能体实践</b><p>AI辅助分析、结果核验与决策报告</p><em>16</em></article>
+      </div>
+    </section>
+
+    <section id="agent" class="section agent-section">
+      <div class="agent-copy">
+        <p class="eyebrow">COURSE AI AGENT · PROTOTYPE</p>
+        <h2>课程智能体：提示思路，不替你思考</h2>
+        <p>未来将接入课程知识库，为学生提供带出处的知识问答、代码诊断、分层提示与学习路径建议。</p>
+        <ul>
+          <li>回答尽可能引用对应章节或课程资源</li>
+          <li>先给诊断线索，再逐步给出解决方案</li>
+          <li>明确不确定性，提醒学生核验关键结论</li>
+        </ul>
+        <div class="prototype-note"><b>当前页面：</b>前端交互样例，尚未连接真实大模型。</div>
+      </div>
+
+      <div class="chat-shell" aria-label="课程智能体交互样例">
+        <div class="chat-header">
+          <div class="agent-avatar" aria-hidden="true">AI</div>
+          <div><b>财数学习助手</b><small><i></i> 演示模式</small></div>
+          <button id="reset-chat" type="button" title="重置对话">↻</button>
+        </div>
+        <div id="chat-messages" class="chat-messages" aria-live="polite">
+          <div class="message assistant-message">你好！我是课程智能体样例。你可以点击下方问题，体验未来的答疑方式。</div>
+        </div>
+        <div class="suggestions" aria-label="示例问题">
+          <button type="button" data-question="什么是训练集和测试集？">训练集和测试集</button>
+          <button type="button" data-question="如何检查缺失值？">如何检查缺失值</button>
+          <button type="button" data-question="聚类前为什么要标准化？">聚类为何标准化</button>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <label class="sr-only" for="chat-input">输入问题</label>
+          <input id="chat-input" name="question" placeholder="输入任意问题测试页面交互…" autocomplete="off">
+          <button type="submit">发送</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="project" class="section project-section">
+      <div class="project-banner">
+        <div>
+          <p class="eyebrow">PROJECT-BASED LEARNING</p>
+          <h2>把课程作业，做成可展示的真实作品</h2>
+          <p>学生团队可围绕企业运营、电商消费、城市治理等公开数据，完成“获取—治理—建模—解释—决策”的全过程。</p>
+        </div>
+        <div class="project-meta">
+          <span>课程综合项目</span><strong>2—3 个</strong>
+          <span>AI 融合案例</span><strong>6 个</strong>
+          <span>目标赛事</span><strong>计算机设计大赛</strong>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div><strong>数据科学与数据分析</strong><span>AI 融合课程网站样例 · 版本 0.1</span></div>
+    <p>上海财经大学信息管理与工程学院</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
