@@ -23,7 +23,7 @@
       <nav id="main-nav" class="main-nav" aria-label="主导航">
         <a href="#about">课程介绍</a>
         <a href="#path">学习路径</a>
-        <a href="#agent">课程智能体</a>
+        <a href="agent.html">课程智能体</a>
         <a href="#project">实践项目</a>
       </nav>
       <span class="online-badge"><i aria-hidden="true"></i> 网站运行正常</span>
@@ -42,7 +42,7 @@
           <p class="hero-lead">从数据获取、清洗与可视化，到机器学习与智能体应用，建立面向财经管理真实问题的完整数据分析能力。</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#path">查看学习路径</a>
-            <a class="button button-ghost" href="#agent">体验智能体样例</a>
+            <a class="button button-ghost" href="agent.html">进入智能体测试页</a>
           </div>
           <dl class="hero-facts" aria-label="课程基本信息">
             <div><dt>课程性质</dt><dd>本科专业必修课</dd></div>
@@ -106,39 +106,39 @@
       </div>
     </section>
 
-    <section id="agent" class="section agent-section">
+    <section id="agent" class="section agent-section agent-entry-section">
       <div class="agent-copy">
-        <p class="eyebrow">COURSE AI AGENT · PROTOTYPE</p>
-        <h2>课程智能体：提示思路，不替你思考</h2>
-        <p>未来将接入课程知识库，为学生提供带出处的知识问答、代码诊断、分层提示与学习路径建议。</p>
+        <p class="eyebrow">COURSE AI AGENT · INDEPENDENT WORKSPACE</p>
+        <h2>课程智能体现在拥有独立测试页面</h2>
+        <p>课程主页用于介绍课程，独立智能体页面用于对话、服务器联调和后续功能测试，避免课程内容与测试界面相互干扰。</p>
         <ul>
-          <li>回答尽可能引用对应章节或课程资源</li>
-          <li>先给诊断线索，再逐步给出解决方案</li>
-          <li>明确不确定性，提醒学生核验关键结论</li>
+          <li>第一阶段验证网页与学生云服务器的文本链路</li>
+          <li>页面显示请求编号和服务器时间，便于现场验收</li>
+          <li>后端不可用时，课程主页仍能独立正常访问</li>
         </ul>
-        <div class="prototype-note"><b>当前页面：</b>前端交互样例，尚未连接真实大模型。</div>
+        <div class="prototype-note"><b>当前阶段：</b>只连接固定文本测试后端，尚未接入真实大模型。</div>
+        <a class="button button-agent" href="agent.html">打开独立智能体页面 →</a>
       </div>
 
-      <div class="chat-shell" aria-label="课程智能体交互样例">
-        <div class="chat-header">
-          <div class="agent-avatar" aria-hidden="true">AI</div>
-          <div><b>财数学习助手</b><small><i></i> 演示模式</small></div>
-          <button id="reset-chat" type="button" title="重置对话">↻</button>
+      <aside class="agent-entry-card" aria-label="独立智能体页面说明">
+        <div class="entry-card-topline"><span>AGENT TEST WORKSPACE</span><b>PAGE 02</b></div>
+        <div class="entry-window" aria-hidden="true">
+          <div class="entry-window-header"><i></i><i></i><i></i><span>agent.html</span></div>
+          <div class="entry-window-body">
+            <div class="entry-side"><span></span><span></span><span></span></div>
+            <div class="entry-chat">
+              <p class="entry-message">请输入第一阶段联调验证文字</p>
+              <p class="entry-message entry-message-user">联调验证-A7K3</p>
+              <p class="entry-message">服务器已收到 · 请求编号 4f3a82cde901</p>
+            </div>
+          </div>
         </div>
-        <div id="chat-messages" class="chat-messages" aria-live="polite">
-          <div class="message assistant-message">你好！我是课程智能体样例。你可以点击下方问题，体验未来的答疑方式。</div>
+        <div class="entry-stats">
+          <div><span>01</span><b>独立页面</b><small>课程与测试分离</small></div>
+          <div><span>02</span><b>真实联调</b><small>响应来自云服务器</small></div>
+          <div><span>03</span><b>故障隔离</b><small>后端不影响主页</small></div>
         </div>
-        <div class="suggestions" aria-label="示例问题">
-          <button type="button" data-question="什么是训练集和测试集？">训练集和测试集</button>
-          <button type="button" data-question="如何检查缺失值？">如何检查缺失值</button>
-          <button type="button" data-question="聚类前为什么要标准化？">聚类为何标准化</button>
-        </div>
-        <form id="chat-form" class="chat-form">
-          <label class="sr-only" for="chat-input">输入问题</label>
-          <input id="chat-input" name="question" placeholder="输入任意问题测试页面交互…" autocomplete="off">
-          <button type="submit">发送</button>
-        </form>
-      </div>
+      </aside>
     </section>
 
     <section id="project" class="section project-section">
@@ -158,7 +158,7 @@
   </main>
 
   <footer class="site-footer">
-    <div><strong>数据科学与数据分析</strong><span>AI 融合课程网站样例 · 版本 0.1</span></div>
+    <div><strong>数据科学与数据分析</strong><span>AI 融合课程网站样例 · 版本 0.2</span></div>
     <p>上海财经大学信息管理与工程学院</p>
   </footer>
 

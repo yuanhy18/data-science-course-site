@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="《数据科学与数据分析》课程智能体独立测试页面">
+  <title>课程智能体测试｜数据科学与数据分析</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="agent-page-body">
+  <a class="skip-link" href="#main">跳到智能体测试区</a>
+
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="index.html" aria-label="返回课程首页">
+        <span class="brand-mark" aria-hidden="true">DS</span>
+        <span class="brand-copy">
+          <strong>数据科学与数据分析</strong>
+          <small>AI 融合课程</small>
+        </span>
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="main-nav">菜单</button>
+      <nav id="main-nav" class="main-nav" aria-label="主导航">
+        <a href="index.html">课程首页</a>
+        <a href="index.html#path">学习路径</a>
+        <a class="nav-active" href="agent.html" aria-current="page">智能体测试</a>
+        <a href="index.html#project">实践项目</a>
+      </nav>
+      <a class="back-home-link" href="index.html">← 返回首页</a>
+    </div>
+  </header>
+
+  <main id="main" class="agent-page-main">
+    <section class="agent-page-intro">
+      <div>
+        <p class="eyebrow">COURSE AI AGENT · PHASE 01</p>
+        <h1>课程智能体独立测试页</h1>
+        <p>本页用于验证浏览器能否把教师输入的文字发送到学生云服务器，并显示服务器返回的固定文本。当前阶段尚未接入大模型或课程知识库。</p>
+      </div>
+      <div class="phase-badge">
+        <span>当前建设阶段</span>
+        <strong>前后端文本联调</strong>
+        <small>固定回复 · 不调用模型</small>
+      </div>
+    </section>
+
+    <section class="agent-workspace" aria-label="课程智能体联调工作台">
+      <aside class="test-sidebar">
+        <div class="status-panel">
+          <p class="sidebar-label">SERVER STATUS</p>
+          <div class="server-status">
+            <i id="api-status-dot" data-state="waiting" aria-hidden="true"></i>
+            <b id="api-status-text">正在读取测试配置</b>
+          </div>
+          <dl class="connection-details">
+            <div><dt>测试入口</dt><dd id="endpoint-text">检查中</dd></div>
+            <div><dt>最近请求</dt><dd id="request-id-text">尚无请求</dd></div>
+            <div><dt>服务器时间</dt><dd id="server-time-text">尚无响应</dd></div>
+          </dl>
+        </div>
+
+        <div class="test-guide">
+          <p class="sidebar-label">现场验收方法</p>
+          <ol>
+            <li>点击生成随机测试文字</li>
+            <li>教师自行修改或补充内容</li>
+            <li>点击发送测试</li>
+            <li>核对原文、编号和服务器时间</li>
+          </ol>
+          <button id="create-test-prompt" class="test-prompt-button" type="button">生成随机测试文字</button>
+        </div>
+
+        <div class="safety-note">
+          <b>请勿输入</b>
+          <p>姓名、学号、成绩、密码、身份证件或其他个人敏感信息。</p>
+        </div>
+      </aside>
+
+      <div class="chat-shell agent-chat-shell">
+        <div class="chat-header">
+          <div class="agent-avatar" aria-hidden="true">AI</div>
+          <div>
+            <b>财数学习助手</b>
+            <small><i></i> 第一阶段服务器联调模式</small>
+          </div>
+          <button id="reset-chat" type="button" title="清空测试记录" aria-label="清空测试记录">↻</button>
+        </div>
+        <div id="chat-messages" class="chat-messages agent-chat-messages" aria-live="polite">
+          <div class="message assistant-message">你好！这里是课程智能体独立测试页。第一阶段只验证文字能否到达学生云服务器并返回，不会调用大模型。</div>
+        </div>
+        <div class="suggestions" aria-label="测试说明">
+          <span>✓ 固定文本回复</span>
+          <span>✓ 唯一请求编号</span>
+          <span>✓ 服务器时间</span>
+        </div>
+        <form id="chat-form" class="chat-form agent-chat-form">
+          <label class="sr-only" for="chat-input">输入联调测试文字</label>
+          <textarea id="chat-input" name="message" maxlength="200" rows="3" placeholder="输入一段只有您现场知道的测试文字……" required></textarea>
+          <button id="chat-submit" type="submit">发送测试</button>
+        </form>
+        <div class="chat-disclaimer">当前回复仅用于验证服务器连接，不代表智能体已经具备课程问答能力。</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer agent-page-footer">
+    <div><strong>数据科学与数据分析</strong><span>课程智能体独立测试页 · 版本 0.2</span></div>
+    <p><a href="index.html">返回课程首页</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="agent-config.js"></script>
+  <script src="agent.js"></script>
+</body>
+</html>
