@@ -2,7 +2,7 @@
 // 学生完成云端测试入口后，把 apiBaseUrl 替换为云平台分配的HTTPS测试地址。
 window.COURSE_AGENT_CONFIG = {
   // 原有后端配置（保留兼容）
-  apiBaseUrl: 'http://124.221.169.198',
+  apiBaseUrl: 'https://124.221.169.198',
   healthPath: '/health',
   chatPath: '/api/chat',
   timeoutMs: 30000,
