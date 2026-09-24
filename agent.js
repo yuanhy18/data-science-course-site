@@ -27,6 +27,68 @@ const testPromptButton = document.querySelector('#create-test-prompt');
 // 对话历史（用于多轮对话）
 let conversationHistory = [];
 
+// ===== 封闭测试访问码：锁定/解锁管理 =====
+const ACCESS_CODE_HEADER = 'X-Access-Code';
+const ACCESS_VALID_MINUTES = 120; // 2 小时有效
+let accessCode = '';        // 当前有效的访问码
+let accessExpireTime = 0;   // 解锁到期时间戳(ms)
+let isLocked = true;        // 是否处于锁定状态
+
+function setLocked(locked) {
+  isLocked = locked;
+  if (locked) {
+    chatInput.placeholder = '请输入访问码解锁大模型';
+    chatInput.rows = 1;
+    submitButton.textContent = '解锁';
+    submitButton.title = '输入访问码后点击解锁';
+    chatInput.disabled = false;
+  } else {
+    chatInput.placeholder = '输入你的课程问题，例如：请解释什么是标准差……';
+    chatInput.rows = 3;
+    submitButton.textContent = '发送';
+    submitButton.title = '';
+    chatInput.disabled = false;
+  }
+}
+
+async function verifyAccessCode(code) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await fetch(getEndpoint('/api/verify-code'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code }),
+      signal: controller.signal
+    });
+    window.clearTimeout(timeoutId);
+    if (!resp.ok) return { valid: false };
+    return await resp.json();
+  } catch (e) {
+    console.error('verify code failed:', e);
+    return { valid: false };
+  }
+}
+
+function hasValidAccess() {
+  return !isLocked && accessCode && Date.now() < accessExpireTime;
+}
+
+// 解锁：核验成功后记录访问码与到期时间
+async function tryUnlock(code) {
+  const result = await verifyAccessCode(code);
+  if (result && result.valid === true) {
+    accessCode = code;
+    accessExpireTime = Date.now() + ACCESS_VALID_MINUTES * 60 * 1000;
+    setLocked(false);
+    chatInput.value = ''; // 解锁后自动清空输入框
+    setStatus('online', '已解锁 · DeepSeek 可使用');
+    addMessage('✅ 已解锁大模型，有效期为 2 小时。现在可以开始提问了！', 'assistant');
+    return true;
+  }
+  return false;
+}
+
 // ===== Markdown 转 HTML 解析器 =====
 function parseMarkdown(text) {
   if (!text) return '';
@@ -337,6 +399,20 @@ async function callDeepSeek(messages) {
 }
 
 async function answerQuestion(question) {
+  // ===== 访问码强制闸门 =====
+  // 只有通过服务端校验的访问码且在有效期内，才允许调用大模型；
+  // 否则一律拦截，绝不发起任何模型请求（防止绕过界面校验直接提问）。
+  if (!hasValidAccess()) {
+    if (!isLocked && Date.now() >= accessExpireTime) {
+      accessCode = '';
+      setLocked(true);
+      setStatus('waiting', '访问码已过期，请重新解锁');
+      chatInput.placeholder = '访问码已过期，请输入访问码解锁大模型';
+    }
+    addMessage('🔒 请先输入正确的访问码解锁大模型，解锁成功后才能提问。', 'assistant');
+    return;
+  }
+
   addMessage(question, 'user');
   const waitingMessage = addMessage('正在思考……', 'assistant');
 
@@ -417,7 +493,7 @@ async function answerQuestion(question) {
     try {
       const data = await requestJson(chatPath, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', [ACCESS_CODE_HEADER]: accessCode },
         body: JSON.stringify({ message: question })
       });
 
@@ -441,21 +517,51 @@ async function answerQuestion(question) {
   }
 }
 
-chatForm.addEventListener('submit', (event) => {
+chatForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const question = chatInput.value.trim();
-  if (!question) return;
-  answerQuestion(question);
+
+  // 检查是否过期自动回到锁定状态
+  if (!isLocked && Date.now() >= accessExpireTime) {
+    accessCode = '';
+    setLocked(true);
+    setStatus('waiting', '访问码已过期，请重新解锁');
+    chatInput.placeholder = '访问码已过期，请输入访问码解锁大模型';
+  }
+
+  const raw = chatInput.value.trim();
+  if (!raw) return;
+
+  if (isLocked) {
+    // 锁定状态：输入的是访问码，尝试解锁
+    const ok = await tryUnlock(raw);
+    if (!ok) {
+      // 访问码错误：清空输入、恢复锁定界面，禁止调用大模型
+      chatInput.value = '';
+      setLocked(true);
+      setStatus('error', '访问码错误，请重新输入');
+      chatInput.placeholder = '访问码错误，请重新输入访问码解锁大模型';
+      addMessage('❌ 访问码错误，请重新输入正确的访问码解锁。', 'assistant');
+    }
+    return;
+  }
+
+  // 已解锁：正常发送聊天消息
+  answerQuestion(raw);
   chatInput.value = '';
 });
 
 resetButton.addEventListener('click', () => {
   chatMessages.innerHTML = '';
   conversationHistory = [];
-  addMessage(
-    '你好！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。',
-    'assistant'
-  );
+  if (isLocked) {
+    // 锁定状态下重置：添加解锁提示
+    addMessage('🔒 请输入访问码解锁大模型后开始对话。', 'assistant');
+  } else {
+    addMessage(
+      '你好！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。',
+      'assistant'
+    );
+  }
   resetMeta();
 });
 
@@ -471,4 +577,6 @@ testPromptButton.addEventListener('click', () => {
   chatInput.focus();
 });
 
+// 初始化锁定状态：页面加载后默认进入访问码锁定界面
+setLocked(true);
 checkHealth();
