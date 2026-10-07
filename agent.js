@@ -176,9 +176,10 @@ function parseMarkdown(text) {
     if (rows.length < 2) return tableBlock;
     if (!/^\|[\s\-:|]+\|$/.test(rows[1].trim())) return tableBlock;
 
-    let tableHtml = '<table>';
+    let tableHtml = '<div class="table-scroll"><table>';
     tableHtml += '<thead><tr>';
-    const headers = rows[0].split('|').filter(c => c.trim() !== '');
+    const parseRow = (r) => { let s = r.trim(); if (s.startsWith('|')) s = s.slice(1); if (s.endsWith('|')) s = s.slice(0, -1); return s.split('|').map(c => c.trim()); };
+    const headers = parseRow(rows[0]);
     for (const h of headers) {
       tableHtml += '<th>' + h.trim() + '</th>';
     }
@@ -186,7 +187,7 @@ function parseMarkdown(text) {
 
     tableHtml += '<tbody>';
     for (let i = 2; i < rows.length; i++) {
-      const cells = rows[i].split('|').filter(c => c.trim() !== '');
+      const cells = parseRow(rows[i]);
       if (cells.length === 0) continue;
       tableHtml += '<tr>';
       for (const c of cells) {
@@ -194,7 +195,7 @@ function parseMarkdown(text) {
       }
       tableHtml += '</tr>';
     }
-    tableHtml += '</tbody></table>';
+    tableHtml += '</tbody></table></div>';
     return tableHtml;
   });
 
@@ -212,7 +213,7 @@ function parseMarkdown(text) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (/^<(h[1-4]|ul|ol|li|pre|hr|blockquote|table|\/ul|\/ol|\/pre|!--(LATEX|MERMAID))/.test(line.trim())) {
+    if (/^<(h[1-4]|ul|ol|li|pre|hr|blockquote|table|div|\/ul|\/ol|\/pre|!--(LATEX|MERMAID))/.test(line.trim())) {
       flushParagraph();
       result.push(line);
     } else if (line.trim() === '') {

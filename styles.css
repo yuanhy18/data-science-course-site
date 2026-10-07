@@ -294,3 +294,15 @@ a { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* ===== Markdown 表格 ===== */
+.table-scroll { width: 100%; overflow-x: auto; margin: 14px 0; -webkit-overflow-scrolling: touch; }
+.message-content .table-scroll table { width: 100%; min-width: 420px; border-collapse: collapse; font-size: 14px; background: #fff; }
+.message-content th, .message-content td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; line-height: 1.6; }
+.message-content thead th { background: #edf4f6; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.message-content tbody tr:nth-child(even) { background: #fafcfc; }
+/* ===== LaTeX 公式 ===== */
+.math-block { margin: 14px 0; text-align: center; overflow-x: auto; }
+.math-block .katex-display { margin: 0; }
+.math-inline { white-space: nowrap; }
+
