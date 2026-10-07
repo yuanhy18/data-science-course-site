@@ -515,7 +515,20 @@ async function answerQuestion(question) {
         body: JSON.stringify({ message: question })
       });
 
-      waitingMessage.querySelector('.message-content').textContent = data.answer || '服务器已响应，但没有返回answer字段。';
+      const answerContent = waitingMessage.querySelector('.message-content');
+      answerContent.innerHTML = parseMarkdown(data.answer || '服务器已响应，但没有返回answer字段。');
+      const mathDelimBS = String.fromCharCode(92);
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(answerContent, {
+          delimiters: [
+            { left: mathDelimBS + '[', right: mathDelimBS + ']', display: true },
+            { left: mathDelimBS + '(', right: mathDelimBS + ')', display: false }
+          ],
+          throwOnError: false,
+          strict: false
+        });
+      }
+      try { await mermaid.run({ querySelector: '.mermaid' }); } catch (e) { console.warn('Mermaid 渲染失败:', e.message); }
       const meta = document.createElement('small');
       meta.className = 'message-meta';
       meta.textContent = `联调编号：${data.request_id || '未返回'} · 模式：${data.mode || 'fixed'}`;
