@@ -339,7 +339,17 @@ async function requestJson(path, options = {}) {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body.detail || body.message || '';
+      } catch (parseErr) {
+        detail = '';
+      }
+      const err = new Error(detail || `HTTP ${response.status}`);
+      err.status = response.status;
+      err.detail = detail;
+      throw err;
     }
 
     return await response.json();
@@ -508,8 +518,8 @@ async function answerQuestion(question) {
     } catch (error) {
       console.error('Course agent API request failed:', error);
       waitingMessage.querySelector('.message-content').textContent =
-        '测试服务器没有正常响应。课程主页仍可使用，请学生检查API网关、服务器进程和浏览器控制台。';
-      setStatus('error', error.name === 'AbortError' ? '请求超时' : '文本联调失败');
+        (error && error.detail) ? error.detail : '测试服务器没有正常响应。课程主页仍可使用，请学生检查API网关、服务器进程和浏览器控制台。';
+      setStatus('error', (error && error.status === 429) ? '今日次数已用完' : (error.name === 'AbortError' ? '请求超时' : '文本联调失败'));
     } finally {
       setBusy(false);
       chatInput.focus();
