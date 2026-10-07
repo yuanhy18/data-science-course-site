@@ -112,6 +112,16 @@ function parseMarkdown(text) {
     return '<!--LATEX:' + id + '-->';
   });
 
+  html = html.replace(/\$\$([\s\S]*?)\$\$/g, function(match, formula) {
+    const id = latexBlocks.length;
+    latexBlocks.push({ type: 'block', content: formula.trim() });
+    return '<!--LATEX:' + id + '-->';
+  });
+  html = html.replace(/\$([^$\n]+?)\$/g, function(match, formula) {
+    const id = latexBlocks.length;
+    latexBlocks.push({ type: 'inline', content: formula.trim() });
+    return '<!--LATEX:' + id + '-->';
+  });
   // 收集 mermaid 图表，用占位符替换，避免被后续处理破坏
   const mermaidBlocks = [];
   html = html.replace(/```mermaid\n?([\s\S]*?)```/g, function(match, code) {
@@ -202,7 +212,7 @@ function parseMarkdown(text) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (/^<(h[1-4]|ul|ol|li|pre|hr|blockquote|table|\/ul|\/ol|\/pre)/.test(line.trim())) {
+    if (/^<(h[1-4]|ul|ol|li|pre|hr|blockquote|table|\/ul|\/ol|\/pre|!--(LATEX|MERMAID))/.test(line.trim())) {
       flushParagraph();
       result.push(line);
     } else if (line.trim() === '') {
@@ -230,10 +240,7 @@ function parseMarkdown(text) {
   // 将 LaTeX 占位符替换为 KaTeX 可渲染的容器
   for (let i = 0; i < latexBlocks.length; i++) {
     const block = latexBlocks[i];
-    const escapedFormula = block.content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    const escapedFormula = block.content;
     if (block.type === 'block') {
       output = output.replace(
         '<!--LATEX:' + i + '-->',
