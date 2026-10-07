@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="《数据科学与数据分析》课程智能体独立测试页面">
   <title>课程智能体测试｜数据科学与数据分析</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260917b">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <script>mermaid.initialize({ startOnLoad: false, theme: 'neutral' });</script>
@@ -89,7 +89,7 @@
           <button id="reset-chat" type="button" title="清空测试记录" aria-label="清空测试记录">↻</button>
         </div>
         <div id="chat-messages" class="chat-messages agent-chat-messages" aria-live="polite">
-          <div class="message assistant-message">你好！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。</div>
+          <div class="message assistant-message">🔒 本页面已锁定，请输入正确的访问码解锁大模型后开始对话。</div>
         </div>
         <div class="suggestions" aria-label="测试说明">
           <span>✓ DeepSeek 大模型</span>
@@ -98,8 +98,8 @@
         </div>
         <form id="chat-form" class="chat-form agent-chat-form">
           <label class="sr-only" for="chat-input">输入联调测试文字</label>
-          <textarea id="chat-input" name="message" maxlength="2000" rows="3" placeholder="输入你的课程问题，例如：请解释什么是标准差……" required></textarea>
-          <button id="chat-submit" type="submit">发送</button>
+          <textarea id="chat-input" name="message" maxlength="2000" rows="3" placeholder="请输入访问码解锁大模型" required></textarea>
+          <button id="chat-submit" type="submit">解锁</button>
         </form>
         <div class="chat-disclaimer">本助手由 DeepSeek 大模型驱动，回答仅供参考，请结合课程教材和教师讲解进行学习。</div>
       </div>
@@ -112,8 +112,8 @@
   </footer>
 
   <script src="app.js"></script>
-  <script src="agent-config.js?v=20260901"></script>
-  <script src="agent.js"></script>
+  <script src="agent-config.js?v=20260917"></script>
+  <script src="agent.js?v=20260917b"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"></script>
 </body>
