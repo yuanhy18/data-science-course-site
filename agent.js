@@ -27,66 +27,132 @@ const testPromptButton = document.querySelector('#create-test-prompt');
 // 对话历史（用于多轮对话）
 let conversationHistory = [];
 
-// ===== 封闭测试访问码：锁定/解锁管理 =====
-const ACCESS_CODE_HEADER = 'X-Access-Code';
-const ACCESS_VALID_MINUTES = 120; // 2 小时有效
-let accessCode = '';        // 当前有效的访问码
-let accessExpireTime = 0;   // 解锁到期时间戳(ms)
-let isLocked = true;        // 是否处于锁定状态
+// ===== 账号登录：会话 Cookie 跨站访问 =====
+// GitHub Pages 与后端不同源，所有请求需 credentials: 'include'；
+// 后端 Cookie 已设置为 SameSite=None; Secure。
+const LOGIN_PATH = '/api/login';
+const ME_PATH = '/api/me';
+const CHANGE_PASSWORD_PATH = '/api/change-password';
+let isLocked = true;             // 是否处于未登录状态
+let currentUser = null;          // 当前登录用户
+let pendingOldPassword = '';     // 首次改密时暂存登录密码（仅内存）
+let needChangePassword = false;  // 是否处于首次改密状态
 
 function setLocked(locked) {
   isLocked = locked;
   if (locked) {
-    chatInput.placeholder = '请输入访问码解锁大模型';
-    chatInput.rows = 1;
-    submitButton.textContent = '解锁';
-    submitButton.title = '输入访问码后点击解锁';
-    chatInput.disabled = false;
+    chatInput.placeholder = '第一行输入学号，第二行输入密码';
+    chatInput.rows = 2;
+    submitButton.textContent = '登录';
+    submitButton.title = '输入学号和密码后点击登录';
   } else {
     chatInput.placeholder = '输入你的课程问题，例如：请解释什么是标准差……';
     chatInput.rows = 3;
     submitButton.textContent = '发送';
     submitButton.title = '';
-    chatInput.disabled = false;
   }
+  chatInput.disabled = false;
 }
 
-async function verifyAccessCode(code) {
+function setChangePasswordMode() {
+  isLocked = true;
+  needChangePassword = true;
+  chatInput.placeholder = '首次登录需设置新密码：第一行新密码，第二行确认新密码';
+  chatInput.rows = 2;
+  submitButton.textContent = '保存密码';
+  submitButton.title = '设置新密码后才能开始提问';
+  chatInput.disabled = false;
+}
+
+function userLabel() {
+  if (!currentUser) return '';
+  return currentUser.name ? currentUser.name + '（' + currentUser.student_no + '）' : currentUser.student_no;
+}
+
+function splitTwoLines(raw) {
+  const lines = raw.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+  return { first: lines[0] || '', second: lines[1] || '' };
+}
+
+async function login(studentNo, password) {
   try {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await fetch(getEndpoint('/api/verify-code'), {
+    const resp = await fetch(getEndpoint(LOGIN_PATH), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code }),
+      credentials: 'include',
+      body: JSON.stringify({ student_no: studentNo, password: password }),
       signal: controller.signal
     });
     window.clearTimeout(timeoutId);
-    if (!resp.ok) return { valid: false };
-    return await resp.json();
+    if (!resp.ok) {
+      let message = '学号或密码错误';
+      try {
+        const data = await resp.json();
+        if (data.detail) message = data.detail;
+      } catch (e) {}
+      return { ok: false, message: message };
+    }
+    const data = await resp.json();
+    // 跨站场景下若浏览器拦截第三方 Cookie，登录接口会成功但会话无法保存
+    const check = await fetch(getEndpoint(ME_PATH), { credentials: 'include' });
+    if (!check.ok) {
+      return { ok: false, message: '登录成功但浏览器未保存登录状态，请允许本站使用 Cookie 后重试。' };
+    }
+    currentUser = data.user || null;
+    pendingOldPassword = password;
+    return { ok: true, mustChange: data.must_change_password === true };
   } catch (e) {
-    console.error('verify code failed:', e);
-    return { valid: false };
+    console.error('login failed:', e);
+    return { ok: false, message: '无法连接登录服务，请稍后再试' };
   }
 }
 
-function hasValidAccess() {
-  return !isLocked && accessCode && Date.now() < accessExpireTime;
+async function changePassword(newPassword) {
+  try {
+    const resp = await fetch(getEndpoint(CHANGE_PASSWORD_PATH), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ old_password: pendingOldPassword, new_password: newPassword })
+    });
+    if (!resp.ok) {
+      let message = '密码修改失败';
+      try {
+        const data = await resp.json();
+        if (data.detail) message = data.detail;
+      } catch (e) {}
+      return { ok: false, message: message };
+    }
+    const data = await resp.json();
+    currentUser = data.user || currentUser;
+    pendingOldPassword = '';
+    return { ok: true };
+  } catch (e) {
+    console.error('change password failed:', e);
+    return { ok: false, message: '无法连接服务器，请稍后再试' };
+  }
 }
 
-// 解锁：核验成功后记录访问码与到期时间
-async function tryUnlock(code) {
-  const result = await verifyAccessCode(code);
-  if (result && result.valid === true) {
-    accessCode = code;
-    accessExpireTime = Date.now() + ACCESS_VALID_MINUTES * 60 * 1000;
+async function restoreSession() {
+  try {
+    const resp = await fetch(getEndpoint(ME_PATH), { credentials: 'include' });
+    if (!resp.ok) { setLocked(true); return; }
+    const data = await resp.json();
+    currentUser = data.user || null;
+    if (currentUser && currentUser.must_change_password) {
+      setChangePasswordMode();
+      addMessage('🔑 首次登录需要修改初始密码，请按“第一行新密码、第二行确认新密码”的格式输入。', 'assistant');
+      return;
+    }
     setLocked(false);
-    chatInput.value = ''; // 解锁后自动清空输入框
-    setStatus('online', '已解锁 · DeepSeek 可使用');
-    addMessage('✅ 已解锁大模型，有效期为 2 小时。现在可以开始提问了！', 'assistant');
-    return true;
+    setStatus('online', '已登录 · ' + userLabel());
+    addMessage('你好，' + userLabel() + '！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。', 'assistant');
+  } catch (e) {
+    console.error('restore session failed:', e);
+    setLocked(true);
   }
-  return false;
 }
 
 // ===== Markdown 转 HTML 解析器 =====
@@ -293,7 +359,13 @@ function setStatus(state, text) {
 function setBusy(busy) {
   submitButton.disabled = busy;
   chatInput.disabled = busy;
-  submitButton.textContent = busy ? '思考中…' : '发送';
+  if (busy) {
+    submitButton.textContent = '思考中…';
+  } else if (isLocked) {
+    submitButton.textContent = needChangePassword ? '保存密码' : '登录';
+  } else {
+    submitButton.textContent = '发送';
+  }
 }
 
 function resetMeta() {
@@ -417,17 +489,12 @@ async function callDeepSeek(messages) {
 }
 
 async function answerQuestion(question) {
-  // ===== 访问码强制闸门 =====
-  // 只有通过服务端校验的访问码且在有效期内，才允许调用大模型；
-  // 否则一律拦截，绝不发起任何模型请求（防止绕过界面校验直接提问）。
-  if (!hasValidAccess()) {
-    if (!isLocked && Date.now() >= accessExpireTime) {
-      accessCode = '';
-      setLocked(true);
-      setStatus('waiting', '访问码已过期，请重新解锁');
-      chatInput.placeholder = '访问码已过期，请输入访问码解锁大模型';
-    }
-    addMessage('🔒 请先输入正确的访问码解锁大模型，解锁成功后才能提问。', 'assistant');
+  // ===== 登录强制闸门 =====
+  // 未登录或未完成首次改密时一律拦截，不发起任何模型请求。
+  if (isLocked || needChangePassword) {
+    addMessage(needChangePassword
+      ? '🔑 请先按提示设置新密码。'
+      : '🔒 请先按“第一行学号、第二行密码”的格式登录后再提问。', 'assistant');
     return;
   }
 
@@ -511,7 +578,8 @@ async function answerQuestion(question) {
     try {
       const data = await requestJson(chatPath, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', [ACCESS_CODE_HEADER]: accessCode },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ message: question })
       });
 
@@ -538,9 +606,22 @@ async function answerQuestion(question) {
       setStatus('online', '最近一次文本联调成功');
     } catch (error) {
       console.error('Course agent API request failed:', error);
-      waitingMessage.querySelector('.message-content').textContent =
-        (error && error.detail) ? error.detail : '测试服务器没有正常响应。课程主页仍可使用，请学生检查API网关、服务器进程和浏览器控制台。';
-      setStatus('error', (error && error.status === 429) ? '今日次数已用完' : (error.name === 'AbortError' ? '请求超时' : '文本联调失败'));
+      if (error && error.status === 401) {
+        setLocked(true);
+        currentUser = null;
+        setStatus('waiting', '登录已失效，请重新登录');
+        waitingMessage.querySelector('.message-content').textContent =
+          '登录已失效，请按“第一行学号、第二行密码”的格式重新登录。';
+      } else if (error && error.status === 403 && error.detail === 'PASSWORD_CHANGE_REQUIRED') {
+        setChangePasswordMode();
+        setStatus('waiting', '首次登录需修改密码');
+        waitingMessage.querySelector('.message-content').textContent =
+          '首次登录需要修改初始密码，请按“第一行新密码、第二行确认新密码”的格式输入。';
+      } else {
+        waitingMessage.querySelector('.message-content').textContent =
+          (error && error.detail) ? error.detail : '测试服务器没有正常响应。课程主页仍可使用，请学生检查API网关、服务器进程和浏览器控制台。';
+        setStatus('error', (error && error.status === 429) ? '今日次数已用完' : (error.name === 'AbortError' ? '请求超时' : '文本联调失败'));
+      }
     } finally {
       setBusy(false);
       chatInput.focus();
@@ -551,32 +632,62 @@ async function answerQuestion(question) {
 chatForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  // 检查是否过期自动回到锁定状态
-  if (!isLocked && Date.now() >= accessExpireTime) {
-    accessCode = '';
-    setLocked(true);
-    setStatus('waiting', '访问码已过期，请重新解锁');
-    chatInput.placeholder = '访问码已过期，请输入访问码解锁大模型';
-  }
-
   const raw = chatInput.value.trim();
   if (!raw) return;
 
-  if (isLocked) {
-    // 锁定状态：输入的是访问码，尝试解锁
-    const ok = await tryUnlock(raw);
-    if (!ok) {
-      // 访问码错误：清空输入、恢复锁定界面，禁止调用大模型
-      chatInput.value = '';
-      setLocked(true);
-      setStatus('error', '访问码错误，请重新输入');
-      chatInput.placeholder = '访问码错误，请重新输入访问码解锁大模型';
-      addMessage('❌ 访问码错误，请重新输入正确的访问码解锁。', 'assistant');
+  // 首次登录：第一行新密码、第二行确认新密码
+  if (needChangePassword) {
+    const lines = splitTwoLines(raw);
+    if (!lines.first || !lines.second) {
+      addMessage('请按“第一行新密码、第二行确认新密码”的格式输入。', 'assistant');
+      return;
     }
+    if (lines.first !== lines.second) {
+      addMessage('两次输入的新密码不一致，请重新输入。', 'assistant');
+      return;
+    }
+    const result = await changePassword(lines.first);
+    chatInput.value = '';
+    if (!result.ok) {
+      setStatus('error', '密码修改失败');
+      addMessage('❌ ' + result.message, 'assistant');
+      return;
+    }
+    needChangePassword = false;
+    setLocked(false);
+    setStatus('online', '已登录 · ' + userLabel());
+    addMessage('✅ 密码已更新，现在可以开始提问了！', 'assistant');
     return;
   }
 
-  // 已解锁：正常发送聊天消息
+  // 未登录：第一行学号、第二行密码
+  if (isLocked) {
+    const lines = splitTwoLines(raw);
+    if (!lines.first || !lines.second) {
+      addMessage('请输入两行内容：第一行学号，第二行密码。', 'assistant');
+      return;
+    }
+    setStatus('waiting', '正在登录……');
+    const result = await login(lines.first, lines.second);
+    chatInput.value = '';
+    if (!result.ok) {
+      setStatus('error', '登录失败');
+      addMessage('❌ ' + result.message, 'assistant');
+      return;
+    }
+    if (result.mustChange) {
+      setChangePasswordMode();
+      setStatus('waiting', '首次登录需修改密码');
+      addMessage('🔑 登录成功。首次登录需要修改初始密码，请按“第一行新密码、第二行确认新密码”的格式输入。', 'assistant');
+      return;
+    }
+    setLocked(false);
+    setStatus('online', '已登录 · ' + userLabel());
+    addMessage('✅ 登录成功，' + userLabel() + '。现在可以开始提问了！', 'assistant');
+    return;
+  }
+
+  // 已登录：正常发送聊天消息
   answerQuestion(raw);
   chatInput.value = '';
 });
@@ -584,9 +695,10 @@ chatForm.addEventListener('submit', async (event) => {
 resetButton.addEventListener('click', () => {
   chatMessages.innerHTML = '';
   conversationHistory = [];
-  if (isLocked) {
-    // 锁定状态下重置：添加解锁提示
-    addMessage('🔒 请输入访问码解锁大模型后开始对话。', 'assistant');
+  if (needChangePassword) {
+    addMessage('🔑 请先设置新密码后再开始对话。', 'assistant');
+  } else if (isLocked) {
+    addMessage('🔒 请按“第一行学号、第二行密码”的格式登录后开始对话。', 'assistant');
   } else {
     addMessage(
       '你好！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。',
@@ -608,6 +720,7 @@ testPromptButton.addEventListener('click', () => {
   chatInput.focus();
 });
 
-// 初始化锁定状态：页面加载后默认进入访问码锁定界面
+// 初始化：先显示登录状态，再检测服务并恢复已有会话
 setLocked(true);
 checkHealth();
+restoreSession();

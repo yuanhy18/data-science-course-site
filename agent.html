@@ -65,8 +65,8 @@
         <div class="test-guide">
           <p class="sidebar-label">现场验收方法</p>
           <ol>
+            <li>第一行输入学号、第二行输入密码登录</li>
             <li>点击生成随机课程问题</li>
-            <li>教师自行修改或补充内容</li>
             <li>点击发送，AI 即时解答</li>
             <li>支持多轮追问和深入探讨</li>
           </ol>
@@ -75,7 +75,7 @@
 
         <div class="safety-note">
           <b>请勿输入</b>
-          <p>姓名、学号、成绩、密码、身份证件或其他个人敏感信息。</p>
+          <p>姓名、成绩、身份证件等其他个人敏感信息；学号和密码仅用于身份验证。</p>
         </div>
       </aside>
 
@@ -89,7 +89,7 @@
           <button id="reset-chat" type="button" title="清空测试记录" aria-label="清空测试记录">↻</button>
         </div>
         <div id="chat-messages" class="chat-messages agent-chat-messages" aria-live="polite">
-          <div class="message assistant-message">🔒 本页面已锁定，请输入正确的访问码解锁大模型后开始对话。</div>
+          <div class="message assistant-message">🔒 请先登录：第一行输入学号，第二行输入密码。</div>
         </div>
         <div class="suggestions" aria-label="测试说明">
           <span>✓ DeepSeek 大模型</span>
@@ -97,9 +97,9 @@
           <span>✓ 课程知识解答</span>
         </div>
         <form id="chat-form" class="chat-form agent-chat-form">
-          <label class="sr-only" for="chat-input">输入联调测试文字</label>
-          <textarea id="chat-input" name="message" maxlength="2000" rows="3" placeholder="请输入访问码解锁大模型" required></textarea>
-          <button id="chat-submit" type="submit">解锁</button>
+          <label class="sr-only" for="chat-input">输入学号和密码或课程问题</label>
+          <textarea id="chat-input" name="message" maxlength="2000" rows="2" placeholder="第一行输入学号，第二行输入密码" required></textarea>
+          <button id="chat-submit" type="submit">登录</button>
         </form>
         <div class="chat-disclaimer">本助手由 DeepSeek 大模型驱动，回答仅供参考，请结合课程教材和教师讲解进行学习。</div>
       </div>
@@ -113,7 +113,7 @@
 
   <script src="app.js"></script>
   <script src="agent-config.js?v=20260917"></script>
-  <script src="agent.js?v=202610080232"></script>
+  <script src="agent.js?v=2026111301"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/contrib/auto-render.min.js"></script>
 </body>
