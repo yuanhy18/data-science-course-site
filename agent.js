@@ -33,6 +33,7 @@ let conversationHistory = [];
 const LOGIN_PATH = '/api/login';
 const ME_PATH = '/api/me';
 const CHANGE_PASSWORD_PATH = '/api/change-password';
+const RESET_PATH = '/api/reset-session';
 let isLocked = true;             // 是否处于未登录状态
 let currentUser = null;          // 当前登录用户
 let pendingOldPassword = '';     // 首次改密时暂存登录密码（仅内存）
@@ -152,6 +153,27 @@ async function restoreSession() {
   } catch (e) {
     console.error('restore session failed:', e);
     setLocked(true);
+  }
+}
+
+async function resetServerSession() {
+  try {
+    const resp = await fetch(getEndpoint(RESET_PATH), {
+      method: 'POST',
+      credentials: 'include'
+    });
+    if (resp.status === 401) {
+      setLocked(true);
+      currentUser = null;
+      return { ok: false, message: '登录已失效，请重新登录' };
+    }
+    if (!resp.ok) {
+      return { ok: false, message: '服务器对话记录清理失败（HTTP ' + resp.status + '）' };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error('reset session failed:', e);
+    return { ok: false, message: '无法连接服务器，服务器对话记录未清理' };
   }
 }
 
@@ -692,7 +714,15 @@ chatForm.addEventListener('submit', async (event) => {
   chatInput.value = '';
 });
 
-resetButton.addEventListener('click', () => {
+resetButton.addEventListener('click', async () => {
+  resetButton.disabled = true;
+  let warning = '';
+  if (!isLocked && currentUser) {
+    const result = await resetServerSession();
+    if (!result.ok) warning = result.message;
+  }
+  resetButton.disabled = false;
+
   chatMessages.innerHTML = '';
   conversationHistory = [];
   if (needChangePassword) {
@@ -704,7 +734,9 @@ resetButton.addEventListener('click', () => {
       '你好！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。',
       'assistant'
     );
+    setStatus('online', '已登录 · ' + userLabel());
   }
+  if (warning) addMessage('⚠️ ' + warning, 'assistant');
   resetMeta();
 });
 
