@@ -34,6 +34,7 @@ const LOGIN_PATH = '/api/login';
 const ME_PATH = '/api/me';
 const CHANGE_PASSWORD_PATH = '/api/change-password';
 const RESET_PATH = '/api/reset-session';
+const SESSION_PATH = '/api/session';
 let isLocked = true;             // 是否处于未登录状态
 let currentUser = null;          // 当前登录用户
 let pendingOldPassword = '';     // 首次改密时暂存登录密码（仅内存）
@@ -149,7 +150,10 @@ async function restoreSession() {
     }
     setLocked(false);
     setStatus('online', '已登录 · ' + userLabel());
-    addMessage('你好，' + userLabel() + '！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。', 'assistant');
+    const restored = await loadServerHistory();
+    if (!restored) {
+      addMessage('你好，' + userLabel() + '！我是财数学习助手，已接入 DeepSeek 大模型。你可以向我提问数据科学、统计分析、Python 编程等课程相关问题。', 'assistant');
+    }
   } catch (e) {
     console.error('restore session failed:', e);
     setLocked(true);
@@ -174,6 +178,30 @@ async function resetServerSession() {
   } catch (e) {
     console.error('reset session failed:', e);
     return { ok: false, message: '无法连接服务器，服务器对话记录未清理' };
+  }
+}
+
+// 登录后拉取服务端保留的对话记录并渲染；只有点击重置按钮才会清空
+async function loadServerHistory() {
+  try {
+    const resp = await fetch(getEndpoint(SESSION_PATH), { credentials: 'include' });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    const messages = (data.messages || []).filter(function (m) {
+      return m && m.content && (m.role === 'user' || m.role === 'assistant');
+    });
+    if (messages.length <= 1) return false;  // 只有开场白，说明没有历史
+    chatMessages.innerHTML = '';
+    conversationHistory = [];
+    messages.forEach(function (item) {
+      const isUser = item.role === 'user';
+      addMessage(item.content, isUser ? 'user' : 'assistant', '', !isUser);
+      conversationHistory.push({ role: item.role, content: item.content });
+    });
+    return true;
+  } catch (e) {
+    console.error('load session history failed:', e);
+    return false;
   }
 }
 
@@ -705,7 +733,10 @@ chatForm.addEventListener('submit', async (event) => {
     }
     setLocked(false);
     setStatus('online', '已登录 · ' + userLabel());
-    addMessage('✅ 登录成功，' + userLabel() + '。现在可以开始提问了！', 'assistant');
+    const restored = await loadServerHistory();
+    if (!restored) {
+      addMessage('✅ 登录成功，' + userLabel() + '。现在可以开始提问了！', 'assistant');
+    }
     return;
   }
 
