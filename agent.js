@@ -35,6 +35,7 @@ const ME_PATH = '/api/me';
 const CHANGE_PASSWORD_PATH = '/api/change-password';
 const RESET_PATH = '/api/reset-session';
 const SESSION_PATH = '/api/session';
+const LOGOUT_PATH = '/api/logout';
 let isLocked = true;             // 是否处于未登录状态
 let currentUser = null;          // 当前登录用户
 let pendingOldPassword = '';     // 首次改密时暂存登录密码（仅内存）
@@ -203,6 +204,24 @@ async function loadServerHistory() {
     console.error('load session history failed:', e);
     return false;
   }
+}
+
+// 退出登录：只清空界面并结束当前登录状态，不删除账号、不影响服务端对话记录
+async function logoutAccount() {
+  try {
+    await fetch(getEndpoint(LOGOUT_PATH), { method: 'POST', credentials: 'include' });
+  } catch (e) {
+    console.error('logout failed:', e);
+  }
+  currentUser = null;
+  pendingOldPassword = '';
+  needChangePassword = false;
+  setLocked(true);
+  chatMessages.innerHTML = '';
+  conversationHistory = [];
+  resetMeta();
+  setStatus('waiting', '未登录');
+  addMessage('🔒 已退出登录（对话记录已保留）。请输入第一行学号、第二行密码重新登录。', 'assistant');
 }
 
 // ===== Markdown 转 HTML 解析器 =====
@@ -684,6 +703,13 @@ chatForm.addEventListener('submit', async (event) => {
 
   const raw = chatInput.value.trim();
   if (!raw) return;
+
+  // 输入 /return 退出当前账号：清空界面，但保留服务端对话记录
+  if (raw.toLowerCase() === '/return') {
+    chatInput.value = '';
+    await logoutAccount();
+    return;
+  }
 
   // 首次登录：第一行新密码、第二行确认新密码
   if (needChangePassword) {
